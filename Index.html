@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romão Cred - Simulador de Portfólio e Giro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased">
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Cabeçalho -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-amber-400">Romão Cred</h1>
+            <p class="text-slate-400">Simulador Avançado de Giro, Prazos e Diversificação de Capital</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Painel de Controles / Inputs -->
+            <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700 space-y-4">
+                <h2 class="text-xl font-semibold text-amber-300 border-b border-slate-700 pb-2">Parâmetros do Sistema</h2>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Capital Inicial Total (R$)</label>
+                    <input type="number" id="capitalInicial" value="6000" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Tempo de Simulação (Semanas)</label>
+                    <input type="number" id="tempoSemanas" value="12" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Valor Médio por Empréstimo-Padrão (R$)</label>
+                    <input type="number" id="valorTicket" value="1000" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Prazo do Empréstimo (Semanas de cada contrato)</label>
+                    <input type="number" id="prazoContrato" value="4" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-slate-300">Taxa de Juros Semanal (%)</label>
+                    <input type="number" step="0.1" id="taxaSemanal" value="3" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
+                    <p class="text-xs text-slate-400 mt-1">Ex: 3% por semana (~12% a 15% ao mês).</p>
+                </div>
+
+                <button onclick="executarSimulacao()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-md">
+                    Calcular Giro e Projeção
+                </button>
+            </div>
+
+            <!-- Painel de Resultados -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Cards de Resumo -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider">Capital Final Estimado</span>
+                        <h3 id="resCapitalFinal" class="text-2xl font-bold text-amber-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider">Total de Lucro Bruto</span>
+                        <h3 id="resLucroTotal" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h3>
+                    </div>
+                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider">Contratos Gerados no Período</span>
+                        <h3 id="resContratos" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
+                    </div>
+                </div>
+
+                <!-- Tabela de Detalhamento Semanal -->
+                <div class="bg-slate-800 rounded-xl border border-slate-700 shadow overflow-hidden">
+                    <div class="p-4 border-b border-slate-700">
+                        <h3 class="font-semibold text-slate-200">Evolução do Fluxo de Caixa Semanal (Efeito Cascata)</h3>
+                    </div>
+                    <div class="overflow-x-auto max-h-[400px]">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead class="bg-slate-900 text-slate-400 sticky top-0">
+                                <tr>
+                                    <th class="p-3">Semana</th>
+                                    <th class="p-3">Entradas (Parcelas)</th>
+                                    <th class="p-3">Caixa Acumulado</th>
+                                    <th class="p-3">Novos Empréstimos Feitos</th>
+                                    <th class="p-3">Sobra em Caixa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaCorpo" class="divide-y divide-slate-700 text-slate-300">
+                                <!-- Preenchido via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function executarSimulacao() {
+            // Captura dos valores do form
+            let capitalInicial = parseFloat(document.getElementById('capitalInicial').value);
+            let tempoSemanas = parseInt(document.getElementById('tempoSemanas').value);
+            let valorTicket = parseFloat(document.getElementById('valorTicket').value);
+            let prazoContrato = parseInt(document.getElementById('prazoContrato').value);
+            let taxaSemanal = parseFloat(document.getElementById('taxaSemanal').value) / 100;
+
+            let caixaDisponivel = capitalInicial;
+            let contratosAtivos = []; // Lista guardando { valorPrincipal, parcelasRestantes, valorParcela }
+            let totalLucroAcumulado = 0;
+            let totalContratosCriados = 0;
+
+            let htmlTabela = "";
+
+            // Inicialização: aloca o capital inicial em contratos máximos possíveis no início
+            let qtdInicialContratos = Math.floor(capitalInicial / valorTicket);
+            let sobraCaixaInicial = capitalInicial % valorTicket;
+
+            let valorParcelaUnitaria = (valorTicket * (1 + (taxaSemanal * prazoContrato))) / prazoContrato;
+
+            for (let i = 0; i < qtdInicialContratos; i++) {
+                contratosAtivos.push({
+                    valorPrincipal: valorTicket,
+                    parcelasRestantes: prazoContrato,
+                    valorParcela: valorParcelaUnitaria
+                });
+                totalContratosCriados++;
+            }
+            caixaDisponivel = sobraCaixaInicial;
+
+            // Loop Temporal por Semana
+            for (let semana = 1; semana <= tempoSemanas; semana++) {
+                let entradasSemana = 0;
+                
+                // Processa recebimentos da semana
+                let novosContratosAtivos = [];
+                contratosAtivos.forEach(c => {
+                    if (c.parcelasRestantes > 0) {
+                        entradasSemana += c.valorParcela;
+                        let jurosRecebidosNaParcela = (c.valorPrincipal * taxaSemanal); // Aproximação de juros por parcela
+                        totalLucroAcumulado += jurosRecebidosNaParcela / prazoContrato; // rateio simples do lucro
+                        
+                        c.parcelasRestantes--;
+                        if (c.parcelasRestantes > 0) {
+                            novosContratosAtivos.push(c);
+                        }
+                    }
+                });
+                contratosAtivos = novosContratosAtivos;
+
+                caixaDisponivel += entradasSemana;
+
+                // Tenta fazer novos empréstimos com o caixa acumulado
+                let novosEmprestimosFeitosNestaSemana = 0;
+                while (caixaDisponivel >= valorTicket) {
+                    caixaDisponivel -= valorTicket;
+                    contratosAtivos.push({
+                        valorPrincipal: valorTicket,
+                        parcelasRestantes: prazoContrato,
+                        valorParcela: valorParcelaUnitaria
+                    });
+                    novosEmprestimosFeitosNestaSemana++;
+                    totalContratosCriados++;
+                }
+
+                // Linha da Tabela
+                htmlTabela += `
+                    <tr class="hover:bg-slate-750">
+                        <td class="p-3 font-semibold text-amber-400">Semana ${semana}</td>
+                        <td class="p-3 text-emerald-400">R$ ${entradasSemana.toFixed(2)}</td>
+                        <td class="p-3">R$ ${(caixaDisponivel + (novosEmprestimosFeitosNestaSemana * valorTicket)).toFixed(2)}</td>
+                        <td class="p-3 text-blue-400">${novosEmprestimosFeitosNestaSemana} (R$ ${novosEmprestimosFeitosNestaSemana * valorTicket})</td>
+                        <td class="p-3">R$ ${caixaDisponivel.toFixed(2)}</td>
+                    </tr>
+                `;
+            }
+
+            // Cálculo do Patrimônio Final (Caixa + Valor Principal dos contratos ativos rolando)
+            let principalAtivoRodando = contratosAtivos.reduce((acc, curr) => acc + curr.valorPrincipal, 0);
+            let patrimonioFinal = caixaDisponivel + principalAtivoRodando;
+
+            // Atualiza os Cards na Tela
+            document.getElementById('resCapitalFinal').innerText = `R$ ${patrimonioFinal.toFixed(2)}`;
+            document.getElementById('resLucroTotal').innerText = `R$ ${totalLucroAcumulado.toFixed(2)}`;
+            document.getElementById('resContratos').innerText = totalContratosCriados;
+            document.getElementById('tabelaCorpo').innerHTML = htmlTabela;
+        }
+
+        // Executa ao carregar
+        window.onload = executarSimulacao;
+    </script>
+</body>
+</html>
