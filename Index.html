@@ -1,172 +1,458 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Romão Cred - Simulador de Portfólio e Giro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Romão Cred · Simulador de Portfólio e Fluxo de Caixa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          base: {
+            950: '#080D17',
+            900: '#0B1220',
+            850: '#0F1729',
+            800: '#121B2E',
+            700: '#1A2438',
+            600: '#223049',
+            500: '#334463',
+          },
+          ink: {
+            100: '#EEF2FA',
+            300: '#C4CCDC',
+            500: '#8993A8',
+            600: '#6B7488',
+          },
+          gold: {
+            400: '#E4BD73',
+            500: '#D4A24C',
+            600: '#B5843A',
+          },
+          jade: {
+            400: '#4FD897',
+            500: '#34C77B',
+          },
+          rose: {
+            400: '#F0707A',
+            500: '#E5484D',
+          },
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  * { font-variant-numeric: tabular-nums; }
+  body { background-color: #080D17; }
+  .bg-grain {
+    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.035) 1px, transparent 0);
+    background-size: 22px 22px;
+  }
+  ::-webkit-scrollbar { height: 10px; width: 10px; }
+  ::-webkit-scrollbar-track { background: #0F1729; }
+  ::-webkit-scrollbar-thumb { background: #223049; border-radius: 6px; }
+  ::-webkit-scrollbar-thumb:hover { background: #334463; }
+  .tier-card input:checked + .tier-face {
+    border-color: #D4A24C;
+    background: linear-gradient(180deg, rgba(212,162,76,0.10) 0%, rgba(212,162,76,0.02) 100%);
+    box-shadow: 0 0 0 1px rgba(212,162,76,0.35), 0 8px 24px -12px rgba(212,162,76,0.4);
+  }
+  .tier-card input:checked + .tier-face .tier-dot {
+    border-color: #D4A24C;
+    background: #D4A24C;
+  }
+  input[type=range] {
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 999px;
+    background: #223049;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #D4A24C;
+    border: 3px solid #080D17;
+    box-shadow: 0 0 0 1px #D4A24C;
+    cursor: pointer;
+    margin-top: -6px;
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #D4A24C;
+    border: 3px solid #080D17;
+    cursor: pointer;
+  }
+  .row-cascade {
+    box-shadow: inset 3px 0 0 0 #D4A24C;
+  }
+  @keyframes riseIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .rise-in { animation: riseIn 0.35s ease-out both; }
+</style>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased">
-    <div class="max-w-6xl mx-auto px-4 py-8">
-        <header class="mb-8 text-center">
-            <h1 class="text-3xl font-bold text-amber-400">Romão Cred</h1>
-            <p class="text-slate-400">Simulador Avançado de Giro, Prazos e Diversificação de Capital</p>
-        </header>
+<body class="bg-base-950 bg-grain text-ink-100 font-body min-h-screen pb-20">
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700 space-y-4">
-                <h2 class="text-xl font-semibold text-amber-300 border-b border-slate-700 pb-2">Parâmetros do Sistema</h2>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300">Capital Inicial Total (R$)</label>
-                    <input type="number" id="capitalInicial" value="6000" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300">Tempo de Simulação (Semanas)</label>
-                    <input type="number" id="tempoSemanas" value="12" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300">Valor Médio por Empréstimo (R$)</label>
-                    <input type="number" id="valorTicket" value="1000" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300">Prazo do Contrato (Semanas)</label>
-                    <input type="number" id="prazoContrato" value="4" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-300">Taxa de Juros Semanal (%)</label>
-                    <input type="number" step="0.1" id="taxaSemanal" value="3" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:ring-2 focus:ring-amber-400 outline-none">
-                </div>
-
-                <button onclick="executarSimulacao()" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-md">
-                    Calcular Giro e Projeção
-                </button>
-            </div>
-
-            <div class="lg:col-span-2 space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider">Capital Final Estimado</span>
-                        <h3 id="resCapitalFinal" class="text-2xl font-bold text-amber-400 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider">Total de Lucro Bruto</span>
-                        <h3 id="resLucroTotal" class="text-2xl font-bold text-emerald-400 mt-1">R$ 0,00</h3>
-                    </div>
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 shadow">
-                        <span class="text-xs text-slate-400 uppercase tracking-wider">Contratos Gerados</span>
-                        <h3 id="resContratos" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
-                    </div>
-                </div>
-
-                <div class="bg-slate-800 rounded-xl border border-slate-700 shadow overflow-hidden">
-                    <div class="p-4 border-b border-slate-700">
-                        <h3 class="font-semibold text-slate-200">Evolução do Fluxo de Caixa Semanal</h3>
-                    </div>
-                    <div class="overflow-x-auto max-h-[400px]">
-                        <table class="w-full text-left border-collapse text-sm">
-                            <thead class="bg-slate-900 text-slate-400 sticky top-0">
-                                <tr>
-                                    <th class="p-3">Semana</th>
-                                    <th class="p-3">Entradas (Parcelas)</th>
-                                    <th class="p-3">Caixa Acumulado</th>
-                                    <th class="p-3">Novos Empréstimos</th>
-                                    <th class="p-3">Sobra em Caixa</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabelaCorpo" class="divide-y divide-slate-700 text-slate-300">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+  <!-- Header -->
+  <header class="border-b border-base-700 bg-base-900/80 backdrop-blur sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-5 md:px-8 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center font-display font-bold text-base-950 text-sm">RC</div>
+        <div>
+          <p class="font-display font-semibold text-[15px] leading-tight tracking-tight text-ink-100">Romão Cred</p>
+          <p class="text-[11px] leading-tight text-ink-500">Simulador de Portfólio &amp; Fluxo de Caixa</p>
         </div>
+      </div>
+      <span class="hidden sm:flex items-center gap-1.5 text-[11px] text-ink-500 border border-base-600 rounded-full px-3 py-1">
+        <span class="w-1.5 h-1.5 rounded-full bg-jade-500"></span>
+        Juros simples · Giro semanal
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-5 md:px-8 pt-8">
+
+    <!-- Intro -->
+    <div class="mb-8 max-w-2xl">
+      <h1 class="font-display text-2xl md:text-[28px] font-semibold tracking-tight text-ink-100">Efeito cascata do capital de giro</h1>
+      <p class="text-sm text-ink-500 mt-1.5 leading-relaxed">Configure o capital, o prazo da carteira e a taxa semanal para projetar como as parcelas recebidas se transformam em novos contratos, semana a semana.</p>
     </div>
 
-    <script>
-        function executarSimulacao() {
-            let capitalInicial = parseFloat(document.getElementById('capitalInicial').value) || 0;
-            let tempoSemanas = parseInt(document.getElementById('tempoSemanas').value) || 1;
-            let valorTicket = parseFloat(document.getElementById('valorTicket').value) || 1;
-            let prazoContrato = parseInt(document.getElementById('prazoContrato').value) || 1;
-            let taxaSemanal = (parseFloat(document.getElementById('taxaSemanal').value) || 0) / 100;
+    <!-- Config Panel -->
+    <section class="grid grid-cols-1 lg:grid-cols-[1.15fr_1fr] gap-5 mb-8">
 
-            let caixaDisponivel = capitalInicial;
-            let contratosAtivos = [];
-            let totalLucroAcumulado = 0;
-            let totalContratosCriados = 0;
-            let htmlTabela = "";
+      <!-- Left: numeric inputs -->
+      <div class="bg-base-900 border border-base-700 rounded-2xl p-5 md:p-6">
+        <p class="text-[11px] uppercase tracking-wider text-ink-500 font-semibold mb-4">Parâmetros da simulação</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-            let qtdInicialContratos = Math.floor(capitalInicial / valorTicket);
-            let sobraCaixaInicial = capitalInicial % valorTicket;
-            let valorParcelaUnitaria = (valorTicket * (1 + (taxaSemanal * prazoContrato))) / prazoContrato;
+          <div>
+            <label for="capitalInicial" class="text-xs text-ink-300 font-medium">Capital inicial total</label>
+            <div class="mt-1.5 flex items-center bg-base-850 border border-base-600 rounded-lg px-3 focus-within:border-gold-500 transition-colors">
+              <span class="text-ink-500 text-sm mr-1">R$</span>
+              <input id="capitalInicial" type="number" min="0" step="100" value="6000" class="w-full bg-transparent py-2.5 text-sm font-mono text-ink-100 outline-none">
+            </div>
+          </div>
 
-            for (let i = 0; i < qtdInicialContratos; i++) {
-                contratosAtivos.push({
-                    valorPrincipal: valorTicket,
-                    parcelasRestantes: prazoContrato,
-                    valorParcela: valorParcelaUnitaria
-                });
-                totalContratosCriados++;
+          <div>
+            <label for="semanasSimulacao" class="text-xs text-ink-300 font-medium">Tempo de simulação</label>
+            <div class="mt-1.5 flex items-center bg-base-850 border border-base-600 rounded-lg px-3 focus-within:border-gold-500 transition-colors">
+              <input id="semanasSimulacao" type="number" min="1" max="104" step="1" value="12" class="w-full bg-transparent py-2.5 text-sm font-mono text-ink-100 outline-none">
+              <span class="text-ink-500 text-xs ml-1 whitespace-nowrap">semanas</span>
+            </div>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="ticketMedio" class="text-xs text-ink-300 font-medium">Valor médio do ticket por empréstimo</label>
+            <div class="mt-1.5 flex items-center bg-base-850 border border-base-600 rounded-lg px-3 focus-within:border-gold-500 transition-colors">
+              <span class="text-ink-500 text-sm mr-1">R$</span>
+              <input id="ticketMedio" type="number" min="100" step="50" value="1000" class="w-full bg-transparent py-2.5 text-sm font-mono text-ink-100 outline-none">
+            </div>
+            <p class="text-[11px] text-ink-600 mt-1.5">Todo novo contrato aberto pelo giro do caixa usa este valor de ticket.</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right: tier selection -->
+      <div class="bg-base-900 border border-base-700 rounded-2xl p-5 md:p-6">
+        <p class="text-[11px] uppercase tracking-wider text-ink-500 font-semibold mb-4">Faixa de prazo &amp; taxa</p>
+
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <label class="tier-card cursor-pointer">
+            <input type="radio" name="faixa" value="curto" checked class="sr-only" data-min="1" data-max="5" data-rate="3">
+            <div class="tier-face border border-base-600 bg-base-850 rounded-xl p-3.5 transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-ink-100">Curto prazo</span>
+                <span class="tier-dot w-3.5 h-3.5 rounded-full border border-base-500"></span>
+              </div>
+              <p class="text-[11px] text-ink-500 leading-snug">1 a 5 semanas</p>
+              <p class="font-display text-lg font-semibold text-gold-400 mt-1">3% <span class="text-xs text-ink-500 font-body font-normal">/semana</span></p>
+            </div>
+          </label>
+
+          <label class="tier-card cursor-pointer">
+            <input type="radio" name="faixa" value="medio" class="sr-only" data-min="6" data-max="10" data-rate="4">
+            <div class="tier-face border border-base-600 bg-base-850 rounded-xl p-3.5 transition-all">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-ink-100">Médio prazo</span>
+                <span class="tier-dot w-3.5 h-3.5 rounded-full border border-base-500"></span>
+              </div>
+              <p class="text-[11px] text-ink-500 leading-snug">6 a 10 semanas</p>
+              <p class="font-display text-lg font-semibold text-gold-400 mt-1">4% <span class="text-xs text-ink-500 font-body font-normal">/semana</span></p>
+            </div>
+          </label>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="prazoContrato" class="text-xs text-ink-300 font-medium">Prazo do contrato</label>
+            <span id="prazoContratoLabel" class="text-xs font-mono text-gold-400 font-semibold">4 semanas</span>
+          </div>
+          <input id="prazoContrato" type="range" min="1" max="5" step="1" value="4" class="w-full">
+          <div class="flex justify-between text-[10px] text-ink-600 mt-1">
+            <span id="prazoMinLabel">1 sem.</span>
+            <span id="prazoMaxLabel">5 sem.</span>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-base-700 flex items-center justify-between text-xs">
+          <span class="text-ink-500">Taxa semanal aplicada</span>
+          <span id="taxaAtivaLabel" class="font-mono font-semibold text-ink-100">3,00%</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="flex justify-end mb-8">
+      <button id="simularBtn" class="inline-flex items-center gap-2 bg-gradient-to-b from-gold-400 to-gold-600 text-base-950 font-semibold text-sm px-6 py-3 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-gold-600/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7z"/></svg>
+        Simular carteira
+      </button>
+    </div>
+
+    <!-- Results -->
+    <section id="resultados" class="hidden">
+
+      <!-- Summary cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 rise-in">
+        <div class="bg-base-900 border border-base-700 rounded-2xl p-5 relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-gold-500/10 rounded-full blur-2xl"></div>
+          <p class="text-[11px] uppercase tracking-wider text-ink-500 font-semibold">Capital final estimado</p>
+          <p id="cardCapitalFinal" class="font-display text-2xl md:text-[26px] font-semibold text-ink-100 mt-2">R$ 0,00</p>
+          <p id="cardCapitalFinalSub" class="text-[11px] text-ink-500 mt-1.5">caixa + principal ativo na rua</p>
+        </div>
+        <div class="bg-base-900 border border-base-700 rounded-2xl p-5 relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-jade-500/10 rounded-full blur-2xl"></div>
+          <p class="text-[11px] uppercase tracking-wider text-ink-500 font-semibold">Lucro bruto acumulado</p>
+          <p id="cardLucroBruto" class="font-display text-2xl md:text-[26px] font-semibold text-jade-400 mt-2">R$ 0,00</p>
+          <p id="cardLucroBrutoSub" class="text-[11px] text-ink-500 mt-1.5">juros recebidos no período</p>
+        </div>
+        <div class="bg-base-900 border border-base-700 rounded-2xl p-5 relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-24 h-24 bg-base-500/20 rounded-full blur-2xl"></div>
+          <p class="text-[11px] uppercase tracking-wider text-ink-500 font-semibold">Contratos gerados</p>
+          <p id="cardContratos" class="font-display text-2xl md:text-[26px] font-semibold text-ink-100 mt-2">0</p>
+          <p id="cardContratosSub" class="text-[11px] text-ink-500 mt-1.5">via giro e reinvestimento</p>
+        </div>
+      </div>
+
+      <!-- Weekly table -->
+      <div class="bg-base-900 border border-base-700 rounded-2xl overflow-hidden rise-in">
+        <div class="px-5 md:px-6 py-4 border-b border-base-700 flex items-center justify-between">
+          <div>
+            <p class="font-display text-sm font-semibold text-ink-100">Detalhamento semanal</p>
+            <p class="text-[11px] text-ink-500 mt-0.5">A barra dourada à esquerda marca as semanas com abertura de novos contratos.</p>
+          </div>
+        </div>
+        <div class="overflow-x-auto max-h-[520px]">
+          <table class="w-full text-sm">
+            <thead class="sticky top-0 z-10">
+              <tr class="bg-base-850 text-ink-500 text-[11px] uppercase tracking-wide">
+                <th class="text-left font-semibold px-5 md:px-6 py-3 whitespace-nowrap">Semana</th>
+                <th class="text-right font-semibold px-4 py-3 whitespace-nowrap">Entradas da semana</th>
+                <th class="text-right font-semibold px-4 py-3 whitespace-nowrap">Caixa acumulado</th>
+                <th class="text-right font-semibold px-4 py-3 whitespace-nowrap">Novos empréstimos</th>
+                <th class="text-right font-semibold px-4 py-3 whitespace-nowrap">Valor alocado</th>
+                <th class="text-right font-semibold px-5 md:px-6 py-3 whitespace-nowrap">Sobra em caixa</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaSemanal" class="divide-y divide-base-700/70 font-mono text-[13px]"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-ink-600 mt-4 leading-relaxed max-w-3xl">
+        Modelo de referência: juros simples fracionados por semana sobre o principal original de cada contrato (parcela = principal/prazo + ticket × taxa semanal). O capital inicial é alocado em contratos na semana 0; a partir da semana 1, toda parcela recebida entra no caixa e, ao atingir o valor de um novo ticket, é imediatamente realocada em um novo contrato — reinvestimento pode ocorrer mais de uma vez por semana. Simulação com fins de planejamento; não considera inadimplência, atraso ou custos operacionais.
+      </p>
+    </section>
+
+    <!-- Empty state -->
+    <div id="vazio" class="border border-dashed border-base-600 rounded-2xl py-16 text-center">
+      <p class="text-ink-500 text-sm">Ajuste os parâmetros acima e clique em <span class="text-ink-300 font-medium">Simular carteira</span> para gerar a projeção.</p>
+    </div>
+
+  </main>
+
+  <script>
+    (function () {
+      const fmtBRL = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const fmtInt = (v) => v.toLocaleString('pt-BR');
+
+      const capitalInicialEl = document.getElementById('capitalInicial');
+      const semanasSimulacaoEl = document.getElementById('semanasSimulacao');
+      const ticketMedioEl = document.getElementById('ticketMedio');
+      const prazoContratoEl = document.getElementById('prazoContrato');
+      const prazoContratoLabel = document.getElementById('prazoContratoLabel');
+      const prazoMinLabel = document.getElementById('prazoMinLabel');
+      const prazoMaxLabel = document.getElementById('prazoMaxLabel');
+      const taxaAtivaLabel = document.getElementById('taxaAtivaLabel');
+      const tierInputs = document.querySelectorAll('input[name="faixa"]');
+      const simularBtn = document.getElementById('simularBtn');
+      const resultadosSec = document.getElementById('resultados');
+      const vazioSec = document.getElementById('vazio');
+      const tabelaBody = document.getElementById('tabelaSemanal');
+
+      function faixaAtiva() {
+        return Array.from(tierInputs).find(i => i.checked);
+      }
+
+      function syncTierUI() {
+        const tier = faixaAtiva();
+        const min = parseInt(tier.dataset.min, 10);
+        const max = parseInt(tier.dataset.max, 10);
+        const rate = parseFloat(tier.dataset.rate);
+
+        prazoContratoEl.min = min;
+        prazoContratoEl.max = max;
+        if (parseInt(prazoContratoEl.value, 10) < min || parseInt(prazoContratoEl.value, 10) > max || prazoContratoEl.dataset.touched !== tier.value) {
+          prazoContratoEl.value = min === 1 ? 4 : min;
+        }
+        prazoContratoEl.dataset.touched = tier.value;
+
+        prazoMinLabel.textContent = min + ' sem.';
+        prazoMaxLabel.textContent = max + ' sem.';
+        prazoContratoLabel.textContent = prazoContratoEl.value + ' semanas';
+        taxaAtivaLabel.textContent = rate.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) + '%';
+      }
+
+      prazoContratoEl.addEventListener('input', () => {
+        prazoContratoLabel.textContent = prazoContratoEl.value + ' semanas';
+      });
+
+      tierInputs.forEach(i => i.addEventListener('change', syncTierUI));
+      syncTierUI();
+
+      function simulate(C0, N, T, P, ratePct) {
+        const r = ratePct / 100;
+        const weeklyInterest = T * r;
+        const weeklyPrincipal = T / P;
+        const weeklyInstallment = weeklyPrincipal + weeklyInterest;
+
+        let contracts = [];
+        let totalContratos = 0;
+        let cash = C0;
+
+        const initialLoans = Math.floor(cash / T);
+        for (let i = 0; i < initialLoans; i++) {
+          contracts.push({ start: 0 });
+          totalContratos++;
+        }
+        cash -= initialLoans * T;
+
+        const rows = [];
+        let totalInterestCollected = 0;
+
+        for (let w = 1; w <= N; w++) {
+          let entradas = 0;
+          let installmentsThisWeek = 0;
+
+          for (const c of contracts) {
+            if (w > c.start && w <= c.start + P) {
+              entradas += weeklyInstallment;
+              installmentsThisWeek++;
             }
-            caixaDisponivel = sobraCaixaInicial;
+          }
 
-            for (let semana = 1; semana <= tempoSemanas; semana++) {
-                let entradasSemana = 0;
-                let novosContratosAtivos = [];
+          cash += entradas;
+          totalInterestCollected += installmentsThisWeek * weeklyInterest;
+          const caixaAcumulado = cash;
 
-                contratosAtivos.forEach(c => {
-                    if (c.parcelasRestantes > 0) {
-                        entradasSemana += c.valorParcela;
-                        let jurosRecebidosNaParcela = (c.valorPrincipal * taxaSemanal);
-                        totalLucroAcumulado += jurosRecebidosNaParcela / prazoContrato;
-                        
-                        c.parcelasRestantes--;
-                        if (c.parcelasRestantes > 0) {
-                            novosContratosAtivos.push(c);
-                        }
-                    }
-                });
-                contratosAtivos = novosContratosAtivos;
-                caixaDisponivel += entradasSemana;
+          let novosEmprestimos = 0;
+          let valorAlocado = 0;
+          while (cash >= T) {
+            cash -= T;
+            contracts.push({ start: w });
+            totalContratos++;
+            novosEmprestimos++;
+            valorAlocado += T;
+          }
 
-                let novosEmprestimosFeitosNestaSemana = 0;
-                while (caixaDisponivel >= valorTicket) {
-                    caixaDisponivel -= valorTicket;
-                    contratosAtivos.push({
-                        valorPrincipal: valorTicket,
-                        parcelasRestantes: prazoContrato,
-                        valorParcela: valorParcelaUnitaria
-                    });
-                    novosEmprestimosFeitosNestaSemana++;
-                    totalContratosCriados++;
-                }
-
-                htmlTabela += `
-                    <tr>
-                        <td class="p-3 font-semibold text-amber-400">Semana ${semana}</td>
-                        <td class="p-3 text-emerald-400">R$ ${entradasSemana.toFixed(2)}</td>
-                        <td class="p-3">R$ ${(caixaDisponivel + (novosEmprestimosFeitosNestaSemana * valorTicket)).toFixed(2)}</td>
-                        <td class="p-3 text-blue-400">${novosEmprestimosFeitosNestaSemana} (R$ ${novosEmprestimosFeitosNestaSemana * valorTicket})</td>
-                        <td class="p-3">R$ ${caixaDisponivel.toFixed(2)}</td>
-                    </tr>
-                `;
-            }
-
-            let principalAtivoRodando = contratosAtivos.reduce((acc, curr) => acc + curr.valorPrincipal, 0);
-            let patrimonioFinal = caixaDisponivel + principalAtivoRodando;
-
-            document.getElementById('resCapitalFinal').innerText = `R$ ${patrimonioFinal.toFixed(2)}`;
-            document.getElementById('resLucroTotal').innerText = `R$ ${totalLucroAcumulado.toFixed(2)}`;
-            document.getElementById('resContratos').innerText = totalContratosCriados;
-            document.getElementById('tabelaCorpo').innerHTML = htmlTabela;
+          rows.push({
+            semana: w,
+            entradas,
+            caixaAcumulado,
+            novosEmprestimos,
+            valorAlocado,
+            sobra: cash,
+          });
         }
 
-        window.onload = executarSimulacao;
-    </script>
+        let outstandingPrincipal = 0;
+        let contratosAtivos = 0;
+        for (const c of contracts) {
+          const paymentsMade = Math.max(0, Math.min(P, N - c.start));
+          const outstanding = T - paymentsMade * weeklyPrincipal;
+          if (outstanding > 0.01) {
+            outstandingPrincipal += outstanding;
+            contratosAtivos++;
+          }
+        }
+
+        return {
+          rows,
+          totalContratos,
+          contratosAtivos,
+          initialLoans,
+          cashFinal: cash,
+          outstandingPrincipal,
+          capitalFinal: cash + outstandingPrincipal,
+          lucroBruto: totalInterestCollected,
+        };
+      }
+
+      function render(result) {
+        document.getElementById('cardCapitalFinal').textContent = fmtBRL(result.capitalFinal);
+        document.getElementById('cardCapitalFinalSub').textContent =
+          `${fmtBRL(result.cashFinal)} em caixa + ${fmtBRL(result.outstandingPrincipal)} em principal na rua`;
+
+        document.getElementById('cardLucroBruto').textContent = fmtBRL(result.lucroBruto);
+
+        document.getElementById('cardContratos').textContent = fmtInt(result.totalContratos);
+        document.getElementById('cardContratosSub').textContent =
+          `${result.initialLoans} iniciais na semana 0 · ${result.contratosAtivos} ainda ativos ao final`;
+
+        tabelaBody.innerHTML = result.rows.map(row => `
+          <tr class="${row.novosEmprestimos > 0 ? 'row-cascade' : ''} hover:bg-base-850/60 transition-colors">
+            <td class="px-5 md:px-6 py-2.5 text-ink-300 font-body font-medium">${row.semana}</td>
+            <td class="px-4 py-2.5 text-right text-ink-100">${fmtBRL(row.entradas)}</td>
+            <td class="px-4 py-2.5 text-right text-ink-300">${fmtBRL(row.caixaAcumulado)}</td>
+            <td class="px-4 py-2.5 text-right ${row.novosEmprestimos > 0 ? 'text-gold-400 font-semibold' : 'text-ink-600'}">${row.novosEmprestimos > 0 ? row.novosEmprestimos : '—'}</td>
+            <td class="px-4 py-2.5 text-right ${row.novosEmprestimos > 0 ? 'text-gold-400' : 'text-ink-600'}">${row.novosEmprestimos > 0 ? fmtBRL(row.valorAlocado) : '—'}</td>
+            <td class="px-5 md:px-6 py-2.5 text-right text-ink-100">${fmtBRL(row.sobra)}</td>
+          </tr>
+        `).join('');
+
+        resultadosSec.classList.remove('hidden');
+        vazioSec.classList.add('hidden');
+      }
+
+      function runSimulation() {
+        const C0 = Math.max(0, parseFloat(capitalInicialEl.value) || 0);
+        const N = Math.max(1, parseInt(semanasSimulacaoEl.value, 10) || 1);
+        const T = Math.max(1, parseFloat(ticketMedioEl.value) || 1);
+        const P = Math.max(1, parseInt(prazoContratoEl.value, 10) || 1);
+        const tier = faixaAtiva();
+        const ratePct = parseFloat(tier.dataset.rate);
+
+        const result = simulate(C0, N, T, P, ratePct);
+        render(result);
+      }
+
+      simularBtn.addEventListener('click', runSimulation);
+    })();
+  </script>
+
 </body>
 </html>
